@@ -9,6 +9,9 @@ public class HexMapEditor : MonoBehaviour {
 
 	private Color activeColor;
 
+    //private Texture activeTexture;
+    //public Material activeMaterial;
+
 	void Awake () {
 		SelectColor(0);
 	}
@@ -27,7 +30,9 @@ public class HexMapEditor : MonoBehaviour {
 		RaycastHit hit;
 		if (Physics.Raycast(inputRay, out hit)) {
 			hexGrid.ColorCell(hit.point, activeColor);
+         //   activeMaterial.SetColor("_Color", new Color(1.0f, 0.0f, 0.0f));
 		}
+
 	}
 
 	public void SelectColor (int index) {

@@ -33,6 +33,10 @@ public class HexMesh : MonoBehaviour {
 		hexMesh.triangles = triangles.ToArray();
 		hexMesh.RecalculateNormals();
 		meshCollider.sharedMesh = hexMesh;
+        Renderer renderer = gameObject.GetComponent<Renderer>();
+      //Renderer renderer = (Renderer)meshCollider.GetComponent<MeshRenderer>().renderer;
+        renderer.material = Resources.Load("matTest") as Material;
+        renderer.material.SetTexture("_Texture",cells[0].texture);
 	}
 
 	void Triangulate (HexCell cell) {
@@ -58,8 +62,8 @@ public class HexMesh : MonoBehaviour {
 	}
 
 	void AddTriangleColor (Color color) {
-		colors.Add(color);
-		colors.Add(color);
-		colors.Add(color);
+		colors.Add(color   );
+		colors.Add(color * 5 );
+		colors.Add(color * 5);
 	}
 }
