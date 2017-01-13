@@ -11,11 +11,10 @@ public class Trajectory : MonoBehaviour {
         public float offset;
     }
 
-    private target[] targets;
+    private target[] targets = new target[] { };
 
 	// Use this for initialization
 	void Start () {
-	    targets = new target[]{};
 	}
 	
 	// Update is called once per frame
@@ -41,7 +40,7 @@ public class Trajectory : MonoBehaviour {
     public int registerTarget()
     {
         int id = targets.Length;
-        target tmp_target = new target();
+        target tmp_target = new target { };
         tmp_target.currentId = 0;
         tmp_target.offset = 0.0f;
 
