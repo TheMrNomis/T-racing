@@ -11,8 +11,6 @@ public class Trajectory : MonoBehaviour {
         public float offset;
     }
 
-    private target[] targets = new target[] { };
-
 	// Use this for initialization
 	void Start () {
 	}
@@ -24,6 +22,7 @@ public class Trajectory : MonoBehaviour {
 
     void OnDrawGizmos()
     {
+        Gizmos.color = Color.black;
         if (path.Length > 0)
             for (int i = 0; i < path.Length; ++i)
             {
@@ -37,73 +36,93 @@ public class Trajectory : MonoBehaviour {
             }
     }
 
-    public int registerTarget()
+    public Vector3 getTargetPosition(Vector3 point, float offset)
     {
-        int id = targets.Length;
-        target tmp_target = new target { };
-        tmp_target.currentId = 0;
-        tmp_target.offset = 0.0f;
-
-        target[] tmp_targets = (target[]) targets.Clone();
-        targets = new target[tmp_targets.Length + 1];
-        for (int i = 0; i < targets.Length; ++i)
-        {
-            if (i < tmp_targets.Length)
-                targets[i] = tmp_targets[i];
-            else
-                targets[i] = tmp_target;
-        }
-
-        return id;
+        return getTargetPosition(advanceTarget(getClosestPointOnTheTrack(point), offset));
     }
 
-    public void advanceTarget(int targetId, float offset)
+    private Vector3 getTargetPosition(target currentTarget)
     {
-        if (targetId >= 0 && targetId < targets.Length)
-        {
-            target current_target = targets[targetId];
-            if(!isClosed && current_target.currentId + 1 >= path.Length)
-            {
-                current_target.offset = 0.0f;
-                targets[targetId] = current_target;
-                return;
-            } 
-            Vector3 p1 = path[current_target.currentId].position;
-            Vector3 p2 = path[(current_target.currentId + 1 >= path.Length) ? 0 : current_target.currentId + 1].position;
+        Vector3 p1 = path[currentTarget.currentId].position;
+        Vector3 p2 = path[(currentTarget.currentId + 1 >= path.Length) ? 0 : (currentTarget.currentId + 1)].position;
 
-            Vector3 dir = p2 - p1;
-            float absolute_offset = current_target.offset + offset;
-            if(absolute_offset > dir.magnitude)
-            {
-                current_target.currentId++;
-                if (isClosed && current_target.currentId >= path.Length)
-                    current_target.currentId = 0;
-                current_target.offset = 0.0f;
-                targets[targetId] = current_target;
-                advanceTarget(targetId, absolute_offset - dir.magnitude);
-            }
-            else
-            {
-                current_target.offset += offset;
-                targets[targetId] = current_target;
-            }
-        }
+        Vector3 dir = (p2 - p1).normalized;
+        return p1 + currentTarget.offset * dir;
     }
 
-    public Vector3 getTargetPosition(int targetId)
+    private target advanceTarget(target currentTarget, float offset)
     {
-        if(targetId >= 0 && targetId < targets.Length)
+        if (!isClosed && currentTarget.currentId + 1 >= path.Length)
         {
-            target current_target = targets[targetId];
-            Vector3 p1 = path[current_target.currentId].position;
-            Vector3 p2 = path[(current_target.currentId + 1 >= path.Length) ? 0 : current_target.currentId + 1].position;
+            currentTarget.offset = 0.0f;
+            currentTarget.currentId = path.Length - 1;
+            return currentTarget;
+        }
+        
+        Vector3 p1 = path[currentTarget.currentId].position;
+        Vector3 p2 = path[(currentTarget.currentId + 1 >= path.Length) ? 0 : (currentTarget.currentId + 1)].position;
 
-            Vector3 dir = (p2 - p1).normalized;
-            return p1 + current_target.offset * dir;
+        Vector3 dir = p2 - p1;
+        float absolute_offset = currentTarget.offset + offset;
+        if (absolute_offset > dir.magnitude)
+        {
+            currentTarget.currentId++;
+            if (isClosed && currentTarget.currentId >= path.Length)
+                currentTarget.currentId = 0;
+            currentTarget.offset = 0.0f;
+            currentTarget = advanceTarget(currentTarget, absolute_offset - dir.magnitude);
         }
         else
         {
-            return path[0].position;
+            currentTarget.offset += offset;
         }
+        return currentTarget;
+    }
+
+    private target getClosestPointOnTheTrack(Vector3 point)
+    {
+        float minDistanceToLine = float.MaxValue;
+        target bestTarget = new target { currentId = 0, offset = 0 };
+
+        for(int i = 0; i < path.Length; ++i)
+        {
+            Ray trackPortion;
+            float trackPortionLength;
+            if (i + 1 >= path.Length)
+            {
+                if (isClosed)
+                {
+                    Vector3 direction = path[0].position - path[i].position;
+                    trackPortion = new Ray(path[i].position, direction);
+                    trackPortionLength = direction.magnitude;
+                }
+                else
+                    continue;
+            }
+            else
+            {
+                Vector3 direction = path[i + 1].position - path[i].position;
+                trackPortion = new Ray(path[i].position, direction);
+                trackPortionLength = direction.magnitude;
+            }
+
+            float distanceToLine = Vector3.Cross(trackPortion.direction, point - trackPortion.origin).magnitude;
+            float offset = Vector3.Dot(trackPortion.direction, point - trackPortion.origin);
+            //ensuring that we stay in the track portion
+            if (offset < 0)
+                offset = 0;
+            else if (offset > trackPortionLength)
+                offset = trackPortionLength;
+
+            //recomputing the distance to the line if the offset has been changed
+            distanceToLine = ((trackPortion.origin + offset * trackPortion.direction) - point).magnitude;
+            if (distanceToLine < minDistanceToLine)
+            {
+                minDistanceToLine = distanceToLine;
+                bestTarget = new target {currentId = i, offset = offset};
+            }
+        }
+
+        return bestTarget;
     }
 }
