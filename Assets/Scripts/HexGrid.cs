@@ -13,13 +13,15 @@ public class HexGrid : MonoBehaviour {
 
 	HexCell[] cells;
 
+    /// ----------------------------
+    public PathCells pathCells;
+
 	Canvas gridCanvas;
 	HexMesh hexMesh;
 
 	void Awake () {
 		gridCanvas = GetComponentInChildren<Canvas>();
 		hexMesh = GetComponentInChildren<HexMesh>();
-
 		cells = new HexCell[height * width];
 
 		for (int z = 0, i = 0; z < height; z++) {
@@ -38,7 +40,13 @@ public class HexGrid : MonoBehaviour {
 		HexCoordinates coordinates = HexCoordinates.FromPosition(position);
 		int index = coordinates.X + coordinates.Z * width + coordinates.Z / 2;
 		HexCell cell = cells[index];
-		cell.color = color;
+        /////---------------------------------
+        cell.UpdateColor(color);
+        if (color != Color.white)
+            pathCells.addCells(cell);
+        else
+            pathCells.removeCells(cell);
+        ///-----------------------------------
 		hexMesh.Triangulate(cells);
 	}
 
