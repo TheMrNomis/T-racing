@@ -25,9 +25,21 @@ public class RotationButton : MonoBehaviour
 
         if(card != gameObject)
         {
-            //Now that we have get the card, we rotate it
+            //Now that we have get the card, we rotate the image of it
             Vector3 axis = new Vector3(0.0f, 0.0f, 1.0f);
-            card.transform.Rotate(axis, 60.0f);
+            //card.transform.Rotate(axis, 60.0f);
+            Image [] img = card.GetComponentsInChildren<Image>();
+            for(int i = 0; i < img.Length; ++i)
+            {
+                img[i].transform.Rotate(axis, 60.0f);
+            }
+
+            //Then we rotate the text in order to keep it straight
+            /*Text txt = card.GetComponentInChildren<Text>();
+            if (txt)
+                txt.gameObject.transform.Rotate(axis, -60.0f);
+            else
+                Debug.Log("No text found");*/
         }
     }
 }

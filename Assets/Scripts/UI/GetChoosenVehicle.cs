@@ -34,10 +34,15 @@ public class GetChoosenVehicle : MonoBehaviour
         weightSlider.value = vehicleStats.weight;
         speedSlider.value = vehicleStats.speed;
         accelerationSlider.value = vehicleStats.acceleration;
+
+        updatePlayerPrefs(vehicleStats);
     }
 	
-	// Update is called once per frame
-	void Update () {
-	
+	// We change the player prefs
+	void updatePlayerPrefs (VehicleStats vehicleStats)
+    {
+        PlayerPrefs.SetFloat("weight", vehicleStats.weight);
+        PlayerPrefs.SetFloat("speed", vehicleStats.speed);
+        PlayerPrefs.SetFloat("acceleration", vehicleStats.acceleration);
 	}
 }
